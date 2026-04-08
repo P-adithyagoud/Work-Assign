@@ -41,6 +41,10 @@ const roleSearchEl   = document.getElementById("role-search");
 const roleDropdown   = document.getElementById("role-dropdown");
 const selectedRolesEl= document.getElementById("selected-roles");
 const addCsvBtn      = document.getElementById("add-csv-btn");
+const uploadCsvBtn   = document.getElementById("upload-csv-btn");
+const uploadFolderBtn= document.getElementById("upload-folder-btn");
+const csvFileInput   = document.getElementById("csv-file-input");
+const csvFolderInput = document.getElementById("csv-folder-input");
 const csvContainer   = document.getElementById("csv-container");
 const analyzeBtn     = document.getElementById("analyze-btn");
 const analyzeBtnTxt  = document.getElementById("analyze-btn-text");
@@ -56,7 +60,11 @@ const historyList    = document.getElementById("history-list");
   if (!currentSession) return;
   userEmailEl.textContent = currentSession.user.email;
   logoutBtn.addEventListener("click", signOut);
-  addCsvBtn.addEventListener("click", addCsvBlock);
+  addCsvBtn.addEventListener("click", () => addCsvBlock());
+  uploadCsvBtn.addEventListener("click", () => csvFileInput.click());
+  uploadFolderBtn.addEventListener("click", () => csvFolderInput.click());
+  csvFileInput.addEventListener("change", (e) => handleFileSelection(e.target.files));
+  csvFolderInput.addEventListener("change", (e) => handleFileSelection(e.target.files));
   analyzeForm.addEventListener("submit", handleAnalyze);
   setupTabs();
   setupRoleSearch();
@@ -121,16 +129,30 @@ function renderSelectedRoles() {
 // CSV File Management
 // ──────────────────────────────────────────────
 
-function addCsvBlock() {
+function handleFileSelection(files) {
+  for (let file of files) {
+    if (file.name.toLowerCase().endsWith(".csv")) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        addCsvBlock(file.name, e.target.result);
+      };
+      reader.readAsText(file);
+    }
+  }
+}
+
+function addCsvBlock(defaultName, defaultContent) {
   const idx = csvFiles.length;
-  csvFiles.push({ name: `dataset_${idx + 1}.csv`, content: "" });
+  const name = defaultName || `dataset_${idx + 1}.csv`;
+  const content = defaultContent || "";
+  csvFiles.push({ name: name, content: content });
 
   const item = document.createElement("div");
   item.className = "csv-file-item";
   item.dataset.idx = idx;
   item.innerHTML = `
     <div class="csv-file-header">
-      <input class="csv-name-input" type="text" value="${csvFiles[idx].name}"
+      <input class="csv-name-input" type="text" value="${esc(name)}"
         placeholder="filename.csv"
         style="background:transparent;border:none;border-bottom:1px solid var(--border);
         color:var(--accent);font-size:13px;font-weight:500;outline:none;width:200px;padding:2px 4px;"
@@ -141,7 +163,7 @@ function addCsvBlock() {
       <textarea placeholder="Paste CSV content here (employees, projects, tools datasets)..."
         onchange="updateCsvContent(${idx}, this.value)"
         oninput="updateCsvContent(${idx}, this.value)"
-        rows="6"></textarea>
+        rows="6">${esc(content)}</textarea>
     </div>
   `;
   csvContainer.appendChild(item);

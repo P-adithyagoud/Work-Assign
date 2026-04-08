@@ -110,10 +110,16 @@ Example: Build a real-time food delivery app with customer tracking, restaurant 
             <div class="panel-title" style="margin:0">
               <div class="icon">📂</div>Employee / Project Datasets <span class="hint-label" style="font-weight:400;font-size:12px;margin-left:6px">(optional CSV)</span>
             </div>
-            <button class="btn btn-secondary" id="add-csv-btn" type="button" style="padding:8px 16px;font-size:13px">+ Add CSV</button>
+            <div style="display:flex; gap:8px;">
+              <input type="file" id="csv-file-input" multiple accept=".csv" style="display:none" />
+              <input type="file" id="csv-folder-input" webkitdirectory directory multiple style="display:none" />
+              <button class="btn btn-secondary" id="upload-folder-btn" type="button" style="padding:8px 16px;font-size:13px">📂 Upload Folder</button>
+              <button class="btn btn-secondary" id="upload-csv-btn" type="button" style="padding:8px 16px;font-size:13px">📄 Upload Files</button>
+              <button class="btn btn-secondary" id="add-csv-btn" type="button" style="padding:8px 16px;font-size:13px">+ Paste CSV</button>
+            </div>
           </div>
           <p style="color:var(--text-muted);font-size:12px;margin:10px 0 16px">
-            Paste employee/project CSV data for personalized assignments. Leave empty for AI-generated recommendations.
+            Upload a folder of CSVs, select specific CSV files, or paste CSV data directly. Leave empty for AI-generated recommendations.
           </p>
           <div id="csv-container"></div>
         </div>
