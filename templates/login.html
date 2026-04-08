@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login — AI Project Manager</title>
+  <meta name="description" content="Sign in to AI Project Manager to analyze and plan your projects with AI."/>
+  <link rel="stylesheet" href="/static/style.css"/>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
+
+  <div class="auth-container">
+    <div class="auth-logo">
+      <div class="logo-icon">🧠</div>
+      <div class="logo-text">AI Project Manager</div>
+    </div>
+
+    <div class="auth-card">
+      <h1>Welcome back</h1>
+      <p class="subtitle">Sign in to your account to continue</p>
+
+      <div class="alert" id="auth-alert"></div>
+
+      <form id="login-form" novalidate>
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <input type="email" id="email" placeholder="you@company.com" autocomplete="email" required/>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" placeholder="Enter your password" autocomplete="current-password" required/>
+        </div>
+
+        <button class="btn btn-primary" type="submit" id="login-btn">
+          <span id="login-txt">Sign In</span>
+          <div class="spinner" id="login-spinner" style="display:none"></div>
+        </button>
+      </form>
+
+      <div class="auth-footer">
+        Don't have an account? <a href="/signup">Create one →</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Supabase JS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/static/auth.js"></script>
+  <script>
+    (async () => { await requireGuest(); })();
+
+    document.getElementById("login-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email    = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+      const btn      = document.getElementById("login-btn");
+      const txt      = document.getElementById("login-txt");
+      const spin     = document.getElementById("login-spinner");
+      const alert    = document.getElementById("auth-alert");
+
+      if (!email || !password) {
+        alert.textContent = "Please fill in all fields.";
+        alert.className = "alert alert-error show";
+        return;
+      }
+
+      btn.disabled = true;
+      txt.textContent = "Signing in…";
+      spin.style.display = "block";
+      alert.className = "alert";
+
+      const { data, error } = await signIn(email, password);
+
+      if (error) {
+        alert.textContent = error.message;
+        alert.className = "alert alert-error show";
+        btn.disabled = false;
+        txt.textContent = "Sign In";
+        spin.style.display = "none";
+      } else {
+        alert.textContent = "Success! Redirecting…";
+        alert.className = "alert alert-success show";
+        setTimeout(() => { window.location.href = "/"; }, 800);
+      }
+    });
+  </script>
+</body>
+</html>

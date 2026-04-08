@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Project Manager</title>
+  <meta name="description" content="AI-powered project planning with team composition, tech stack, and timeline estimation."/>
+  <link rel="stylesheet" href="/static/style.css"/>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
+
+  <!-- ── Navbar ── -->
+  <nav class="navbar">
+    <div class="nav-brand">
+      <div class="logo-icon">🧠</div>
+      <div class="logo-text">AI Project Manager</div>
+    </div>
+    <div class="nav-right">
+      <span class="user-badge" id="user-email">Loading…</span>
+      <button class="btn btn-danger" id="logout-btn">Logout</button>
+    </div>
+  </nav>
+
+  <div class="app-container">
+
+    <!-- ── Tabs ── -->
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="tab-new">📊 New Analysis</button>
+      <button class="tab-btn" data-tab="tab-analysis">📋 Results</button>
+      <button class="tab-btn" data-tab="tab-history">🕑 History</button>
+    </div>
+
+    <!-- ══ TAB: NEW ANALYSIS ══ -->
+    <div class="tab-content active" id="tab-new">
+
+      <div class="alert" id="main-alert"></div>
+
+      <form id="analyze-form">
+
+        <!-- Project Info -->
+        <div class="panel">
+          <div class="panel-title"><div class="icon">🚀</div>Project Information</div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="project-name">Project Name <span class="required">*</span></label>
+              <input type="text" id="project-name" placeholder="e.g. E-Commerce Platform v2.0"/>
+            </div>
+            <div class="form-group">
+              <label for="duration-hint">Estimated Duration <span class="hint-label">(optional)</span></label>
+              <input type="text" id="duration-hint" placeholder="e.g. 3 months, 90 days, 2 weeks"/>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="project-description">Project Description <span class="hint-label">(optional — AI generates from this alone)</span></label>
+            <textarea id="project-description" rows="4"
+              placeholder="Describe your project goals, features, and requirements. The AI can generate a full analysis from this description alone — no CSV needed!
+
+Example: Build a real-time food delivery app with customer tracking, restaurant dashboard, driver app, and payment integration. Target: 10,000 daily users, launch in 3 months."></textarea>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="team-size-hint">Team Size Hint <span class="hint-label">(optional)</span></label>
+              <input type="text" id="team-size-hint" placeholder="e.g. 8 people, small team, 10-15 members"/>
+            </div>
+            <div class="form-group">
+              <label for="tech-preferences">Technology Preferences <span class="hint-label">(optional)</span></label>
+              <input type="text" id="tech-preferences" placeholder="e.g. React, Python, AWS, PostgreSQL"/>
+            </div>
+          </div>
+        </div>
+
+        <!-- IT Roles -->
+        <div class="panel">
+          <div class="panel-title"><div class="icon">👥</div>IT Roles Required <span class="hint-label" style="font-weight:400;font-size:13px">(optional — AI auto-selects if not chosen)</span></div>
+          <p style="color:var(--text-muted);font-size:12px;margin-bottom:14px">Search and select roles. AI will determine exact counts and responsibilities for each.</p>
+
+          <div class="role-search-wrap">
+            <input type="text" id="role-search" placeholder="🔍  Search IT roles — e.g. DevOps, Frontend, ML..." class="role-search-input" autocomplete="off"/>
+            <div class="role-dropdown" id="role-dropdown"></div>
+          </div>
+
+          <!-- Selected Role Tags -->
+          <div class="selected-roles" id="selected-roles">
+            <span class="no-roles-hint">No roles selected — AI will determine the best team composition</span>
+          </div>
+
+          <!-- Common Roles Quick-Add -->
+          <div class="quick-roles">
+            <span class="quick-label">Quick add:</span>
+            <button type="button" class="quick-role-btn" onclick="quickAddRole('Frontend Developer')">Frontend Dev</button>
+            <button type="button" class="quick-role-btn" onclick="quickAddRole('Backend Developer')">Backend Dev</button>
+            <button type="button" class="quick-role-btn" onclick="quickAddRole('DevOps Engineer')">DevOps</button>
+            <button type="button" class="quick-role-btn" onclick="quickAddRole('UI/UX Designer')">UI/UX</button>
+            <button type="button" class="quick-role-btn" onclick="quickAddRole('QA Engineer')">QA</button>
+            <button type="button" class="quick-role-btn" onclick="quickAddRole('Project Manager')">PM</button>
+            <button type="button" class="quick-role-btn" onclick="quickAddRole('Data Scientist')">Data Scientist</button>
+            <button type="button" class="quick-role-btn" onclick="quickAddRole('Mobile Developer')">Mobile Dev</button>
+          </div>
+        </div>
+
+        <!-- CSV Files (Optional) -->
+        <div class="panel">
+          <div class="csv-files-header">
+            <div class="panel-title" style="margin:0">
+              <div class="icon">📂</div>Employee / Project Datasets <span class="hint-label" style="font-weight:400;font-size:12px;margin-left:6px">(optional CSV)</span>
+            </div>
+            <button class="btn btn-secondary" id="add-csv-btn" type="button" style="padding:8px 16px;font-size:13px">+ Add CSV</button>
+          </div>
+          <p style="color:var(--text-muted);font-size:12px;margin:10px 0 16px">
+            Paste employee/project CSV data for personalized assignments. Leave empty for AI-generated recommendations.
+          </p>
+          <div id="csv-container"></div>
+        </div>
+
+        <!-- Submit -->
+        <button class="btn btn-primary" type="submit" id="analyze-btn" style="font-size:15px;padding:16px">
+          <span id="analyze-btn-text">🚀 Generate Project Plan</span>
+          <div class="spinner" id="analyze-spinner" style="display:none"></div>
+        </button>
+
+      </form>
+    </div><!-- /tab-new -->
+
+    <!-- ══ TAB: RESULTS ══ -->
+    <div class="tab-content" id="tab-analysis">
+
+      <!-- Empty state -->
+      <div id="no-results-msg" style="text-align:center;padding:80px 20px;color:var(--text-muted)">
+        <div style="font-size:48px;margin-bottom:16px">📊</div>
+        <div style="font-size:16px;font-weight:600;margin-bottom:8px">No analysis yet</div>
+        <div style="font-size:13px">Fill in the project details and click <strong>Generate Project Plan</strong></div>
+      </div>
+
+      <div id="results-section">
+
+        <!-- ── Export Action Bar ── -->
+        <div class="export-bar" id="export-bar">
+          <div class="export-bar-label">📄 Export Results</div>
+          <div class="export-bar-actions">
+            <button class="btn btn-secondary export-btn" id="execute-task-btn" onclick="executeTasks()" style="background:var(--accent-purple);border-color:var(--accent-purple);color:#fff;margin-right:8px">
+              <span>🚀</span> Execute Tasks
+            </button>
+            <button class="btn btn-secondary export-btn" id="copy-text-btn" onclick="copyAsText()">
+              <span>📋</span> Copy Text
+            </button>
+            <button class="btn btn-primary export-btn" id="download-pdf-btn" onclick="downloadPDF()">
+              <span>⬇️</span> Download PDF
+            </button>
+          </div>
+        </div>
+
+        <!-- Overview -->
+
+        <div class="section-divider"><h2>📌 Project Overview</h2><div class="line"></div></div>
+        <div class="panel">
+          <div class="panel-title"><div class="icon">📌</div><span id="res-project-title">—</span></div>
+          <div class="overview-text" id="res-overview"></div>
+          <div style="margin-top:20px">
+            <div class="field-label">REQUIRED SKILLS</div>
+            <div class="badge-list" id="res-skills"></div>
+          </div>
+        </div>
+
+        <!-- ── Key Stats Row ── -->
+        <div class="section-divider"><h2>📊 Project Summary</h2><div class="line"></div></div>
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-icon">⏱</div>
+            <div class="stat-value" id="stat-days">—</div>
+            <div class="stat-label">Total Days</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">📅</div>
+            <div class="stat-value" id="stat-weeks">—</div>
+            <div class="stat-label">Total Weeks</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">👥</div>
+            <div class="stat-value" id="stat-team">—</div>
+            <div class="stat-label">Team Size</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🔧</div>
+            <div class="stat-value" id="stat-roles">—</div>
+            <div class="stat-label">Roles Needed</div>
+          </div>
+        </div>
+
+        <!-- Team Size -->
+        <div class="panel" id="team-size-panel">
+          <div class="panel-title"><div class="icon">👥</div>Team Size Details</div>
+          <div class="overview-text" id="res-team-breakdown" style="border-left-color:var(--accent-2)"></div>
+        </div>
+
+        <!-- Team Composition (role + count) -->
+        <div class="section-divider"><h2>🏗 Team Composition</h2><div class="line"></div></div>
+        <div class="panel">
+          <div class="table-wrapper">
+            <table>
+              <thead><tr><th>IT Role</th><th>Count</th><th>Skills Required</th><th>Responsibility</th></tr></thead>
+              <tbody id="composition-table-body">
+                <tr><td colspan="4" class="muted" style="text-align:center;padding:32px">Run an analysis to see team composition</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Team Assignment -->
+        <div class="section-divider"><h2>👤 Team Assignment</h2><div class="line"></div></div>
+        <div class="panel">
+          <div class="table-wrapper">
+            <table>
+              <thead><tr><th>Role</th><th>Count</th><th>Employee / Profile</th><th>Reason</th></tr></thead>
+              <tbody id="team-table-body">
+                <tr><td colspan="4" class="muted" style="text-align:center;padding:32px">No assignments yet</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tech Stack -->
+        <div class="section-divider"><h2>⚙️ Tech Stack</h2><div class="line"></div></div>
+        <div class="panel">
+          <div class="table-wrapper">
+            <table>
+              <thead><tr><th>Technology</th><th>Category</th><th>Purpose</th><th>Version</th></tr></thead>
+              <tbody id="tech-table-body">
+                <tr><td colspan="4" class="muted" style="text-align:center;padding:32px">No tech stack yet</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Timeline (duration per phase) -->
+        <div class="section-divider"><h2>📅 Timeline Breakdown</h2><div class="line"></div></div>
+        <div class="panel">
+          <div class="table-wrapper">
+            <table>
+              <thead><tr><th>Phase</th><th>Duration</th><th>% of Total</th></tr></thead>
+              <tbody id="timeline-table-body">
+                <tr><td colspan="3" class="muted" style="text-align:center;padding:32px">No timeline yet</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="overview-text" id="res-timeline" style="margin-top:16px;border-left-color:var(--accent-3)"></div>
+        </div>
+
+        <!-- Recommended Tools -->
+        <div class="section-divider"><h2>🔧 Recommended Tools</h2><div class="line"></div></div>
+        <div class="panel">
+          <div class="table-wrapper">
+            <table>
+              <thead><tr><th>Tool</th><th>Reason</th></tr></thead>
+              <tbody id="tools-table-body">
+                <tr><td colspan="2" class="muted" style="text-align:center;padding:32px">No tools yet</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Execution Plan -->
+        <div class="section-divider"><h2>📋 Execution Plan</h2><div class="line"></div></div>
+        <div class="panel">
+          <div class="table-wrapper">
+            <table>
+              <thead><tr><th>Phase</th><th>Duration</th><th>Tasks</th></tr></thead>
+              <tbody id="plan-table-body">
+                <tr><td colspan="3" class="muted" style="text-align:center;padding:32px">No plan yet</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Risk Analysis -->
+        <div class="section-divider"><h2>⚠️ Risk Analysis</h2><div class="line"></div></div>
+        <div class="panel">
+          <div class="table-wrapper">
+            <table>
+              <thead><tr><th>Risk</th><th>Mitigation Strategy</th></tr></thead>
+              <tbody id="risk-table-body">
+                <tr><td colspan="2" class="muted" style="text-align:center;padding:32px">No risks identified yet</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div><!-- /results-section -->
+    </div><!-- /tab-analysis -->
+
+    <!-- ══ TAB: HISTORY ══ -->
+    <div class="tab-content" id="tab-history">
+      <div class="panel">
+        <div class="panel-title"><div class="icon">🕑</div>Past Analyses</div>
+        <div id="history-list">
+          <p style="color:var(--text-muted);font-size:13px;text-align:center;padding:24px">Loading history…</p>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /app-container -->
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/static/jspdf.umd.min.js" onerror="document.write('<script src=\'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js\'><\/script>')"></script>
+  <script src="/static/auth.js"></script>
+  <script src="/static/app.js"></script>
+
+</body>
+</html>
+
+
