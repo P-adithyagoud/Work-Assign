@@ -1,15 +1,15 @@
-# AI Project Manager
+# AI Project Manager (Work Assign)
 
-An intelligent web application that uses AI to analyze projects and automatically generate comprehensive project plans, team assignments, tech stacks, timelines, and risk analyses — even without CSV data.
+An intelligent web application that uses an Auditable Decision Engine and AI to analyze projects and automatically generate comprehensive project plans, team assignments, tech stacks, timelines, and risk analyses — with robust support for CSV datasets.
 
 ---
 
 ## What This Project Does
 
-Given a project name and optional context (description, preferred roles, team size, tech preferences, or CSV employee data), the AI generates a **full structured project plan** including:
+Given a project name and context (description, preferred roles, team size, tech preferences) along with optional CSV employee data, the system generates a **full structured project plan** including:
 
 - **Team Composition** — recommended roles with headcounts and skills
-- **Team Assignment** — which employee/profile should fill each role
+- **Team Assignment (Auditable)** — deterministic pairing of employees to roles with exact confidence scores based on skill match, workload, and experience, along with transparent decision traces and alternatives.
 - **Tech Stack** — recommended technologies with categories and purpose
 - **Timeline Breakdown** — phase-by-phase duration with visual progress bars
 - **Execution Plan** — step-by-step tasks per phase
@@ -27,10 +27,11 @@ Results can be:
 
 | Feature | Description |
 |---|---|
-| **AI Analysis** | Powered by Groq LLM — generates plans in seconds |
-| **CSV Upload** | Optional — paste employee/project datasets for personalized assignments |
+| **Auditable Decision Engine** | Assignments are scored securely without hallucination using a multi-phase deterministic engine. |
+| **AI Analysis** | Powered by Groq LLM — generates project architecture and timeline plans in seconds |
+| **CSV File & Folder Uploads** | Upload directories and individual `.csv` files or paste data directly to feed employee stats into the assignment engine |
 | **Role Search** | Searchable dropdown of 50+ IT roles with quick-add buttons |
-| **History** | All analyses are saved to Supabase and can be re-loaded |
+| **History** | All analyses are saved to Supabase and can be re-loaded instantly |
 | **PDF Export** | Clean A4 white PDF with cover page, tables, and page numbers |
 | **Text Export** | Copy full report as formatted plain text |
 | **Execute Tasks** | Auto-copies plan and opens the Task Execution Dashboard |
@@ -54,17 +55,18 @@ Results can be:
 ## Project Structure
 
 ```
-Role Assignment/
+Work-Assign/
 ├── app.py                  # Flask backend — API routes, auth, DB operations
-├── ai_project_manager.py   # AI prompt engineering and response parsing
+├── ai_project_manager.py   # AI prompt engineering and auditable decision engine
 ├── supabase_schema.sql     # Database schema (run once in Supabase SQL Editor)
 ├── .env                    # Environment variables (not committed to Git)
 ├── .gitignore
 ├── templates/
-│   ├── index.html          # Main app page
-│   └── login.html          # Login / signup page
+│   ├── index.html          # Main app page (includes file upload inputs)
+│   ├── login.html          # Login page
+│   └── signup.html         # Signup page
 └── static/
-    ├── app.js              # Frontend logic (analysis, export, history)
+    ├── app.js              # Frontend logic (analysis, CSV processing, export, history)
     ├── auth.js             # Supabase auth helpers
     └── style.css           # Dark-mode UI styles
 ```
@@ -80,13 +82,14 @@ Role Assignment/
 
 ### 2. Clone the repository
 ```bash
-git clone <your-repo-url>
-cd "Role Assignment"
+git clone https://github.com/P-adithyagoud/Work-Assign
+cd Work-Assign
 ```
 
 ### 3. Install Python dependencies
 ```bash
-pip install flask python-dotenv groq supabase httpx pandas
+pip install -r requirements.txt
+# Alternatively: pip install flask python-dotenv groq supabase httpx pandas
 ```
 
 ### 4. Configure environment variables
@@ -121,22 +124,10 @@ Then open [http://localhost:5000](http://localhost:5000) in your browser.
    - Team size hint (e.g. "8 people")
    - Technology preferences (e.g. "React, Python, AWS")
    - Preferred IT roles (search and select from dropdown)
-   - CSV data (paste employee/project datasets)
+   - **Upload CSV Data** (Use "Upload Folder" or "Upload Files" to dynamically populate your employee database before assignment)
 3. Click **Generate Project Plan**
 4. View the results across all sections (team, tech stack, timeline, risks)
 5. Use the export buttons to **Copy Text**, **Download PDF**, or **Execute Tasks**
-
----
-
-## Environment Variables Reference
-
-| Variable | Description |
-|---|---|
-| `SUPABASE_URL` | Your Supabase project URL |
-| `SUPABASE_ANON_KEY` | Supabase anonymous public key |
-| `SUPABASE_SERVICE_KEY` | Supabase service role key (for backend DB writes) |
-| `GROQ_API_KEY` | Groq API key for LLM access |
-| `FLASK_SECRET_KEY` | Flask session secret (any random string) |
 
 ---
 
