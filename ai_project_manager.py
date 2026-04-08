@@ -123,9 +123,15 @@ Step 2 — Team Composition
 - Cover all relevant IT roles (Frontend, Backend, DevOps, QA, PM, UX, etc.)
 - If preferred roles are specified, prioritize those
 
-Step 3 — Employee Assignment
-If employee CSV data is available, assign specific employees and STRICTLY include their Employee IDs next to their names (e.g., Name (ID: 1234)). Ask for the ID explicitly from the CSV.
-If not, describe the ideal candidate profile for each role.
+Step 3 — Employee Assignment (AUDITABLE DECISION MODE)
+If employee CSV data is available, act as a strict Decision Engine.
+- Ensure all assigned candidates have: name, skills, experience, workload (derive from CSV if possible).
+- Feature Evaluation: Calculate `skill_match` (exact matches/mappings only), `workload_score` (100 - workload), `experience_weight` (min(exp*10, 100)).
+- Score Computation: Calculate `confidence` = (skill_match * 0.5) + (workload_score * 0.2) + (experience_weight * 0.3).
+- Constraint Enforcement: Reject candidates if skill_match < 60. Penalize workload > 85.
+Rank candidates by confidence, select the highest, apply tie-breaking.
+Provide explainable, auditable, and consistent outputs using the required JSON schema.
+If no CSV data is provided, generate a hypothetical assignment following the same strict structured format.
 
 Step 4 — Tech Stack Selection
 Recommend a complete, modern tech stack for this project including:
@@ -177,12 +183,27 @@ Return ONLY valid JSON. No markdown, no explanation, just the JSON.
     "rationale": "Based on project scope and 3-month deadline"
   }},
 
-  "team_assignment": [
+  "team_assignments": [
     {{
       "role": "Frontend Developer",
-      "count": 2,
-      "employee": "Alice (ID: EMP-101), Bob (ID: EMP-102) (or Ideal: React specialist with 3+ years)",
-      "reason": "Strong React skills and available bandwidth"
+      "assigned_to": "Meera",
+      "reason": {{
+        "skill_match": "92%",
+        "workload": "55%",
+        "experience": "6 years"
+      }},
+      "confidence": "88%",
+      "summary": "Selected due to highest skill alignment and balanced workload among all candidates",
+      "alternative": {{
+        "name": "Rahul",
+        "reason_not_selected": "Lower confidence due to reduced skill match and higher workload"
+      }},
+      "decision_trace": [
+        "Skill match calculated using exact and mapped skills",
+        "Workload evaluated without modification",
+        "Confidence computed using weighted scoring",
+        "Ranked #1 among 5 candidates"
+      ]
     }}
   ],
 

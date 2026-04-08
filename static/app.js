@@ -251,14 +251,26 @@ function renderResults(data, projectName) {
 
   // ── Team Assignment Table ──
   const teamBody = document.getElementById("team-table-body");
-  teamBody.innerHTML = (data.team_assignment || []).map(row => `
+  const assignments = data.team_assignments || data.team_assignment || [];
+  teamBody.innerHTML = assignments.map(row => `
     <tr>
-      <td><span class="badge">${esc(row.role)}</span></td>
-      <td><span class="count-badge">${row.count || 1}</span></td>
-      <td style="font-weight:600">${esc(row.employee)}</td>
-      <td class="muted">${esc(row.reason)}</td>
+      <td style="vertical-align:top;"><span class="badge">${esc(row.role)}</span></td>
+      <td style="vertical-align:top;font-weight:600">${esc(row.assigned_to || row.employee || "—")}</td>
+      <td style="vertical-align:top;">
+        <div style="font-weight:bold;margin-bottom:4px;color:var(--accent-purple)">${esc(row.confidence || "—")}</div>
+        <div style="font-size:11px;color:var(--text-muted)">
+          SM: ${esc(row.reason?.skill_match || "—")} | WL: ${esc(row.reason?.workload || "—")} | EXP: ${esc(row.reason?.experience || "—")}
+        </div>
+      </td>
+      <td style="vertical-align:top;" class="muted">
+        <div style="margin-bottom:8px"><strong>Summary:</strong> ${esc(row.summary || (typeof row.reason === 'string' ? row.reason : ""))}</div>
+        ${row.alternative ? `<div style="font-size:11px;padding:4px;background:var(--bg-layer-2);border-radius:4px"><strong>Alternative:</strong> ${esc(row.alternative.name)} — ${esc(row.alternative.reason_not_selected)}</div>` : ''}
+      </td>
+      <td style="vertical-align:top;font-size:11px;color:var(--text-muted)">
+        ${Array.isArray(row.decision_trace) ? row.decision_trace.map(t => `<div>• ${esc(t)}</div>`).join("") : "—"}
+      </td>
     </tr>`
-  ).join("") || `<tr><td colspan="4" class="muted" style="text-align:center;padding:24px">No assignments</td></tr>`;
+  ).join("") || `<tr><td colspan="5" class="muted" style="text-align:center;padding:24px">No assignments</td></tr>`;
 
   // ── Tech Stack Table ──
   const techBody = document.getElementById("tech-table-body");
@@ -469,11 +481,22 @@ function buildPlainText(d, name) {
   txt += "\n";
 
   txt += "TEAM ASSIGNMENT\n" + ln("-") + "\n";
-  (d.team_assignment||[]).forEach(r => {
-    txt += "  [" + r.role + " x" + (r.count||1) + "] " + r.employee + "\n";
-    txt += "    Reason: " + r.reason + "\n";
+  const assignmentsList = d.team_assignments || d.team_assignment || [];
+  assignmentsList.forEach(r => {
+    txt += "  [" + r.role + "] " + (r.assigned_to || r.employee || "N/A") + " (Confidence: " + (r.confidence||"N/A") + ")\n";
+    if (r.reason && typeof r.reason === 'object') {
+      txt += "    Metrics: Skill Match: " + r.reason.skill_match + " | Workload: " + r.reason.workload + " | Exp: " + r.reason.experience + "\n";
+    }
+    txt += "    Summary: " + (r.summary || (typeof r.reason === 'string' ? r.reason : "")) + "\n";
+    if (r.alternative) {
+      txt += "    Alternative: " + r.alternative.name + " (" + r.alternative.reason_not_selected + ")\n";
+    }
+    if (Array.isArray(r.decision_trace)) {
+      txt += "    Decision Trace:\n";
+      r.decision_trace.forEach(t => txt += "      - " + t + "\n");
+    }
+    txt += "\n";
   });
-  txt += "\n";
 
   txt += "TECH STACK\n" + ln("-") + "\n";
   (d.tech_stack||[]).forEach(r => {
@@ -674,11 +697,13 @@ function downloadPDF() {
     }
 
     // Team Assignment
-    if ((d.team_assignment || []).length) {
-      h1("Team Assignment");
-      tr(["Role", "Count", "Employee", "Reason"], [45, 18, 55, 72], true);
-      d.team_assignment.forEach(r => {
-        tr([r.role, String(r.count || 1), r.employee || "N/A", r.reason || ""], [45, 18, 55, 72]);
+    const assignmentsPDF = d.team_assignments || d.team_assignment || [];
+    if (assignmentsPDF.length) {
+      h1("Team Assignment (Auditable)");
+      tr(["Role", "Assigned To", "Confidence", "Summary"], [40, 40, 25, 85], true);
+      assignmentsPDF.forEach(r => {
+        const summ = r.summary || (typeof r.reason === 'string' ? r.reason : "See text export for trace details");
+        tr([r.role, r.assigned_to || r.employee || "N/A", r.confidence || "N/A", summ], [40, 40, 25, 85]);
       });
       y += 3;
     }
